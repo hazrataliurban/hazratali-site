@@ -43,7 +43,17 @@ async function isSuper(token) {
 }
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  if (req.method === 'GET') return res.status(200).json({ ok: true, ai: !!(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY) });
+  if (req.method === 'GET') {
+    const has = !!(process.env.ANTHROPIC_API_KEY || process.env.GEMINI_API_KEY);
+    const out = { ok: true, ai: has, provider: process.env.ANTHROPIC_API_KEY ? 'claude' : (process.env.GEMINI_API_KEY ? 'gemini' : 'none'), model: process.env.ANTHROPIC_API_KEY ? MODEL : GMODEL };
+    if (has && String((req.url || '')).indexOf('test=1') >= 0) {
+      const ip0 = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
+      if (limited('t' + ip0, 6, 600000)) { out.test = { ok: false, error: 'rate' }; return res.status(200).json(out); }
+      try { out.test = { ok: true, reply: (await claude('Reply with one short word.', 'Say hello', 20)).slice(0, 80) }; }
+      catch (e) { out.test = { ok: false, error: String(e.message || e).slice(0, 300) }; }
+    }
+    return res.status(200).json(out);
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
   const o = req.headers.origin;
   try { if (o && new URL(o).host !== req.headers.host) return res.status(403).json({ error: 'origin' }); } catch (e) { return res.status(403).json({ error: 'origin' }); }
