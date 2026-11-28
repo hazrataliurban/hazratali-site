@@ -14633,7 +14633,7 @@ function tBM(msg){const L=rows(),mine=(C.blogs||[]);
  ${BM.g!=='all'?`<div class="tb"><button class="btn btn-outline dk sm" onclick="bmAllG()">📥 Is group ke sab ${L.length} drafts jodein</button></div>`:''}
  <div class="tw"><table><tr><th>Idea (Hindi / English)<th>Group<th></tr>${L.slice(0,BM.lim).map(x=>{const h=have(x);return `<tr><td>${esc(x.th)}<br><small style="color:#64748b">${esc(x.te)}</small><td><small>${esc(x.gi[2])}</small><td class="act">${h>=0?`<span style="color:#047857">✔ jud chuka</span> <button class="btn btn-outline dk sm" onclick="liEdit('blogs',${h})">✏️ Edit</button>`:`<button class="btn btn-outline dk sm" onclick="bmPrev('${x.id}')">👁</button> <button class="btn btn-solid sm" onclick="bmAdd('${x.id}',0)">✏️ Edit karke jodein</button> <button class="btn btn-outline dk sm" onclick="bmAdd('${x.id}',1)">🚀 Seedha publish</button>`}</tr>`}).join('')||'<tr><td colspan=3>Koi idea nahi mila'}</table></div>
  ${L.length>BM.lim?`<div class="tb"><button class="btn btn-outline dk" onclick="BMmore()">Aur dikhayein (${L.length-BM.lim} baaki)</button></div>`:''}</div>
- <div class="blk"><div class="bh"><h3>Aapke Blogs (${mine.length})</h3></div><div class="tw"><table><tr><th>Title<th>Category<th>Tareekh<th>Status<th></tr>${mine.map((b,i)=>`<tr><td>${esc((b.title&&(b.title.hi||b.title.en))||'-')}${b.img?' 🖼':''}<td>${esc(b.cat||'Blog')}<td>${esc(b.date||'')}<td>${b.show==='N'?'📝 Draft':'✅ Live'}<td class="act"><button class="btn btn-outline dk sm" onclick="liEdit('blogs',${i})">✏️ Edit / Photo</button> <button class="btn btn-outline dk sm" onclick="bmTg(${i})">${b.show==='N'?'Publish':'Chhupayein'}</button> <button class="btn btn-outline dk sm" onclick="bmDel(${i})">🗑</button></tr>`).join('')||'<tr><td colspan=5>Abhi koi blog nahi'}</table></div></div>`}
+ <div class="blk"><div class="bh"><h3>Aapke Blogs (${mine.length})</h3></div><div class="tw"><table><tr><th>Title<th>Category<th>Tareekh<th>Status<th></tr>${mine.map((b,i)=>`<tr><td>${esc((b.title&&(b.title.hi||b.title.en))||'-')}${b.img?' 🖼':''}<td>${esc(b.cat||'Blog')}<td>${esc(b.date||'')}<td>${b.show==='N'?'📝 Draft':'✅ Live'}<td class="act"><button class="btn btn-outline dk sm" onclick="liEdit('blogs',${i})">✏️ Edit / Photo</button> <button class="btn btn-outline dk sm" onclick="bmTg(${i})">${b.show==='N'?'Publish':'Chhupayein'}</button> <button class="btn btn-outline dk sm" onclick="bmDel(${i})">🗑</button></tr>`).join('')||'<tr><td colspan=5>Abhi koi blog nahi'}</table></div></div>`;if(window.bsStat)window.bsStat()}
 window.tBM=tBM;
 window.bmG=g=>{BM.g=g;BM.lim=60;tBM()};window.bmS=v=>{BM.q=v;const p=v.length;tBM();const i=document.getElementById('bmQ');if(i){i.focus();i.setSelectionRange(p,p)}};window.BMmore=()=>{BM.lim+=60;tBM()};
 window.bmNew=()=>{C.blogs=C.blogs||[];liEdit('blogs',-1)};
@@ -14647,6 +14647,43 @@ const _r=window.renderTab;window.renderTab=function(){if(AT_cur==='blog_maker'){
 try{const g=AT_GROUPS.find(x=>x[1].some(t=>t[0]==='home_edit'))||AT_GROUPS[0];if(!AT_GROUPS.some(x=>x[1].some(t=>t[0]==='blog_maker'))){let i=g[1].findIndex(t=>t[0]==='gs_set');if(i<0)i=g[1].findIndex(t=>t[0]==='home_edit');g[1].splice(i+1,0,['blog_maker','✍️ Blog Maker (200+ Ideas + Edit + Photo)','content'])}}catch(e){}
 
 }catch(e){console.error("bm",e)}
+})();
+</script>
+<script>
+/* v52 Blog AI summary + writer */
+(function(){
+try{
+const API='/api/ai',WEB=/^https?:$/.test(location.protocol);
+const LGN=()=>{const l=document.documentElement.getAttribute('data-lang');return l==='en'||l==='mr'?l:'hi'};
+const txtOf=(o,l)=>o&&typeof o==='object'?(o[l]||o.hi||o.en||''):String(o||'');
+function offline(t){t=String(t||'').replace(/\r/g,'');const bl=t.split('\n').filter(x=>/^\s*[•\-\*]\s+/.test(x)).map(x=>x.replace(/^\s*[•\-\*]\s+/,'').trim());if(bl.length>=2)return bl.slice(0,5);
+ const s=t.split(/(?<=[।.!?])\s+|\n+/).map(x=>x.trim()).filter(x=>x.length>25);return s.slice(0,4)}
+const rtime=t=>Math.max(1,Math.round(String(t).split(/\s+/).length/180));
+function key(b,l){return 'bsum_'+(b.idea||String(txtOf(b.title,'en')||txtOf(b.title,'hi')).slice(0,30))+'_'+l+'_'+String(txtOf(b.content,l)).length}
+function render(el,pts,ai){el.innerHTML=`<div style="font-weight:700;margin-bottom:6px">🤖 ${ai?'AI ':''}${({hi:'सारांश',mr:'सारांश',en:'Summary'})[LGN()]} <small style="font-weight:400;color:#64748b">${ai?'(AI se)':'(turant)'}</small></div>${pts.map(x=>`<div style="margin:3px 0">${/^•/.test(x)?'':'• '}${esc(x.replace(/^•\s*/,''))}</div>`).join('')||'—'}`}
+function panel(b){const l=LGN(),full=txtOf(b.content||b.summary,l),art=document.querySelector('#modal .blog-article');if(!art||art.querySelector('#bsBox'))return;
+ const h=art.querySelector('h2'),box=document.createElement('div');box.id='bsBox';box.style.cssText='background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;margin:0 0 16px';
+ box.innerHTML=`<div id="bsOut"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center"><button type="button" class="btn btn-outline sm" id="bsAi">✨ ${({hi:'AI से बेहतर सारांश',mr:'AI कडून सारांश',en:'Better summary with AI'})[l]}</button><button type="button" class="btn btn-outline sm" id="bsWa">💬 WhatsApp</button><button type="button" class="btn btn-outline sm" id="bsPr">🖨️ Print</button><small style="color:#64748b">⏱ ${rtime(full)} min</small></div>`;
+ (h||art.firstChild).insertAdjacentElement('afterend',box);const out=box.querySelector('#bsOut');let ck=null;try{ck=localStorage.getItem(key(b,l))}catch(e){}
+ if(ck)render(out,ck.split('\n'),1);else render(out,offline(full),0);
+ box.querySelector('#bsWa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(txtOf(b.title,l)+'\n\n'+out.innerText.replace(/^.*\n/,'')+'\n\n'+location.origin+'/blog'),'_blank','noopener');
+ box.querySelector('#bsPr').onclick=()=>window.print();
+ const bt=box.querySelector('#bsAi');if(!WEB)bt.style.display='none';
+ bt.onclick=async()=>{bt.disabled=true;const o0=bt.textContent;bt.textContent='…';try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mode:'summary',lang:l,title:txtOf(b.title,l),text:full})});const j=await r.json();if(!r.ok||!j.text)throw new Error(j.error||'fail');const pts=j.text.split('\n').map(x=>x.trim()).filter(Boolean);render(out,pts,1);try{localStorage.setItem(key(b,l),pts.join('\n'))}catch(e){}bt.style.display='none'}catch(e){bt.disabled=false;bt.textContent=o0;toast(e.message==='no_key'?'AI abhi chalu nahi hai — upar ka turant saransh dekhein':'AI abhi uplabdh nahi — turant saransh dekhein')}}}
+const _ob=window.openBlog;window.openBlog=function(i){const r=_ob.apply(this,arguments);try{const b=(C.blogs||[])[i];if(b)panel(b)}catch(e){}return r};
+/* ---- admin: AI full-blog writer inside blog edit form ---- */
+async function token(){try{const s=await sb.auth.getSession();return s&&s.data&&s.data.session&&s.data.session.access_token}catch(e){return null}}
+async function aiCall(body){const t=await token();const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+(t||'')},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('http '+r.status));return j.text}
+window.bsWrite=async function(){const g=i=>document.getElementById(i),st=g('bsWst');if(!WEB){toast('AI writer sirf live site par chalta hai');return}
+ const ls=['hi','en','mr'].filter(l=>g('m_title_'+l)&&g('m_title_'+l).value.trim());if(!ls.length){toast('Pehle title likhein');return}
+ const bt=g('bsWb');bt.disabled=true;let ok=0;
+ for(const l of ls){st.textContent='✍️ '+l.toUpperCase()+' likh raha hoon… (10-20 second)';try{const notes=(g('m_content_'+l)&&g('m_content_'+l).value)||(g('m_summary_'+l)&&g('m_summary_'+l).value)||'';const t=await aiCall({mode:'write',lang:l,title:g('m_title_'+l).value.trim(),notes});if(t&&g('m_content_'+l)){g('m_content_'+l).value=t;const sm=g('m_summary_'+l);if(sm&&!sm.value.trim()){sm.value=t.replace(/▶\s*/g,'').slice(0,140).replace(/\s+\S*$/,'')+'…'}ok++}}catch(e){st.textContent='❌ '+(e.message==='no_key'?'AI key (GEMINI_API_KEY) Vercel me set nahi hai':e.message==='admin_only'?'Sirf Super Admin (login ke saath)':e.message);bt.disabled=false;return}}
+ st.textContent='✔ '+ok+' bhasha ka poora blog taiyar — padh kar Save karein';bt.disabled=false};
+const _le=window.liEdit;window.liEdit=function(k,i){const r=_le.apply(this,arguments);if(k==='blogs'){try{const m=document.querySelector('#modal .mc');if(m&&!m.querySelector('#bsWb')){const d=document.createElement('div');d.style.cssText='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;margin:0 0 12px';d.innerHTML='<b>🤖 AI se Poora Blog</b><div style="font-size:12.5px;color:#475569;margin:4px 0 8px">Title likhein (aur chahein to text me kuch mukhya points) — AI 500-700 shabd ka poora blog likhega. Save karne se pehle zaroor padh lein.</div><button type="button" class="btn btn-solid sm" id="bsWb" onclick="bsWrite()">✍️ AI se poora likhein</button> <span id="bsWst" style="font-size:13px"></span>';const h=m.querySelector('h3');h&&h.insertAdjacentElement('afterend',d)}}catch(e){}}return r};
+/* ---- AI status in Blog Maker tab ---- */
+window.bsStat=function(){try{const pn=document.getElementById('pn');if(pn&&WEB&&!pn.querySelector('#bsStat')){pn.insertAdjacentHTML('afterbegin','<div class="blk" id="bsStat"><b>🤖 AI status:</b> <span id="bsS">check ho raha hai…</span></div>');fetch(API).then(r=>r.json()).then(j=>{document.getElementById('bsS').innerHTML=j.ai?'✅ chalu — blog saransh aur "AI se poora likhein" kaam karenge.':'⚠️ abhi band — Vercel → Settings → Environment Variables me free <code>GEMINI_API_KEY</code> (ya <code>ANTHROPIC_API_KEY</code>) daalkar Redeploy karein. Tab tak customer ko turant saransh dikhta rahega.'}).catch(()=>{document.getElementById('bsS').textContent='⚠️ /api/ai nahi mila — poora zip Vercel par deploy karein.'})}}catch(e){}};
+
+}catch(e){console.error("bs",e)}
 })();
 </script>
 </body>

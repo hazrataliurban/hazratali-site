@@ -1,5 +1,5 @@
 // Vercel: /api/sitemap.js  (sitemap.xml isi se banta hai, domain apne aap pata chalta hai)
-const PAGES = ["home","about","team","financials","governance","appointment","halalpool","services","online","deposit","loan","calculator","gold","savings","eligibility","membership","gallery","calendar","blog","agm","welfare","contact"];
+const PAGES = ["home","about","team","financials","governance","appointment","halalpool","services","online","deposit","loan","calculator","gold","savings","eligibility","membership","gallery","calendar","blog","agm","welfare","contact","arj","zakat"];
 module.exports = (req, res) => {
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const base = 'https://' + host;
